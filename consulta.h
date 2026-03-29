@@ -1,18 +1,21 @@
 #ifndef CONSULTA_H
 #define CONSULTA_H
 
-
-// ./consulta-tre -b -m dados.csv
-// ./consulta-tre -c -p pastaComDados
 // ./consulta-tre -c dados1.csv dados2.csv ...
+// ./consulta-tre -b -m dados.csv
 // ./consulta-tre -r dados.csv
 // ./consulta-tre -h
 // ./consulta-tre -v 
-static const char comando_buscar = "-b";
-static const char comando_concatenar = "-c";
-static const char comando_resumir = "-r";
-static const char comando_ajuda = "-h";
-static const char opt_pasta = "-p";
+
+const char *comando_concatenar = "-c"; //concatenar
+const char *comando_buscar = "-b"; // buscar
+const char *comando_resumir = "-r"; // resumir
+const char *comando_ajuda = "-h"; // ajuda
+const char *comando_versao = "-v"; // versão
+const char *opt_municipio = "-m"; // Opção municipio
+
+
+
 
 
 
