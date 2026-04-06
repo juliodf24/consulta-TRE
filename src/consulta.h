@@ -1,12 +1,14 @@
 #ifndef CONSULTA_H
 #define CONSULTA_H
-
+#define ERRO -1
 typedef struct {
 	char *cmd; //string do comando Ex: "-h"
     // armazena um ponteiro para uma função Ex: cmd_help
 	int (*fn)(int, char **); // int para receber o argc e char** para receber o endereco de argv
 } comando_struct;
 
+
+// deve ser tratado tudo como ponteiro pois na logica utilizada na leitura do csv o calculo de quantidade de campos é feita utilizando sizeof(UnidadeJurisdiciona_Struct)/8 
 typedef struct{
 	char* sigla_tribunal;
 	char* procedimento;

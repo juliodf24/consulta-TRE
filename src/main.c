@@ -14,7 +14,7 @@ static comando_struct comandos[] = {
 
 // recebe uma string e retorna o comando no formato comando_struct caso exista, se não retorna null
 static comando_struct *encontrarComando(char *texto){
-    for (size_t i = 0; i < (sizeof(comandos)/sizeof(comandos[0])); i++){
+    for (int i = 0; i < (sizeof(comandos)/sizeof(comandos[0])); i++){
         comando_struct *comando = &comandos[i];
         if(strcmp(texto, comando->cmd) == 0){
             return comando;
@@ -33,12 +33,13 @@ int main(int argc, char *argv[]){
     }
 
     comando_struct *comando = encontrarComando(cmd);
-
+    argc--;
+    argv++;
     if(comando){
-        comando->fn(argc--, argv++);
+        int resultado = comando->fn(argc , argv++);
     } else{
         printf("Comando não encontrado!\n");
-        encontrarComando("-h")->fn(argc--, argv++);
+        encontrarComando("-h")->fn(argc ,argv);
         exit(0);
     }
 
