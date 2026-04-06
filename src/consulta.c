@@ -60,6 +60,9 @@ int cmd_concatenar(int argc, char **argv) {
         }
     }
 
+    if(qtdarquivos <= 1){
+        return ERRO;
+    }
         
     // cria o nome de saida padrão no formato output_Dia-Mês-Ano_Hora-Minutos-Segundos
     if(strlen(nomeSaida) < 2){
