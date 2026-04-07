@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "consulta.h"
 #include <time.h>
+#include <dirent.h>
+#include "consulta.h"
 
 
 int concatenar(char* caminhoArquivo, FILE* output, int primeiro){
@@ -31,32 +32,88 @@ int concatenar(char* caminhoArquivo, FILE* output, int primeiro){
 int cmd_help(int argc, char **argv){
     printf("ajuda\n");
 };
+
 int cmd_buscar(int argc, char **argv){
     printf("buscar\n");
 };
+
 int cmd_versao(int argc, char **argv){
     printf("versão 1.0.0 BETA\n");
 };
+
 int cmd_concatenar(int argc, char **argv) {
     
-    char arquivos[100][120];
-    char nomeSaida[120];
+    char arquivos[1024][120];
     int qtdarquivos = 0;
+    char pastas[10][120];
+    int qtdPastas = -1;
+    char nomeSaida[120];
+    int leituraPasta = 0;
+    int nomeSaidaPersonalizado = 0;
     // retirar o "-c"
     argc--;
     argv++;
+    
 
     for(int i = 0; i < argc; i++){
-        if(strcmp("-o",argv[i]) == 0 && i + 1 < argc){
-            strcpy(nomeSaida, argv[i+1]);
-            break;
-        } else{
-            if (qtdarquivos < 100) {
-                strcpy(arquivos[qtdarquivos], argv[i]);
-                qtdarquivos++;
-            }else{
+        if(strcmp("-p", argv[i]) == 0){
+            if(i+1 < argc){
+                leituraPasta = 1;
+                continue;
+            } else{
                 break;
             }
+        } 
+        if(strcmp("-o",argv[i]) == 0 && i + 1 < argc){
+            strcpy(nomeSaida, argv[i+1]);
+            nomeSaidaPersonalizado = 1;
+            break;
+        } else{
+            if(leituraPasta == 1){
+                if (qtdPastas < 10) {
+                    qtdPastas++;
+                    strcpy(pastas[qtdPastas], argv[i]);
+                }else{
+                    printf("Limite de 10 pastas atingido!\n");
+                    break;
+                }
+            }else{
+                if (qtdarquivos < 1024) {
+                    strcpy(arquivos[qtdarquivos], argv[i]);
+                    qtdarquivos++;
+                }else{
+                    printf("Limite de 1024 Arquivos atingido!\n");
+                    break;
+                }
+            }
+        }
+    }
+    if(qtdPastas >= 0){
+        for(int i = 0; i <= qtdPastas; i++){
+            DIR *dir = opendir(pastas[i]);
+            if(dir == 0){
+                printf("falha ao abrir o diretorio!\n");
+                perror("Erro");
+                return ERRO;
+            }
+            struct dirent * arquivo;
+            while ((arquivo = readdir(dir))){
+                char caminhoCompleto[sizeof(pastas[i])+sizeof(arquivo->d_name)+1] = "";
+                sprintf(caminhoCompleto, "%s/%s", pastas[i], arquivo->d_name);
+                if (qtdarquivos < 1024) {
+                    if (strstr(caminhoCompleto, ".csv") != NULL) {
+                        strcpy(arquivos[qtdarquivos], caminhoCompleto);
+                        qtdarquivos++;
+                    } else {
+                        continue;
+                    }
+                }else{
+                    printf("Limite de 1024 Arquivos atingido!\n");
+                    closedir(dir);
+                    break;
+                }
+            } 
+            closedir(dir);
         }
     }
 
@@ -65,7 +122,7 @@ int cmd_concatenar(int argc, char **argv) {
     }
         
     // cria o nome de saida padrão no formato output_Dia-Mês-Ano_Hora-Minutos-Segundos
-    if(strlen(nomeSaida) < 2){
+    if(nomeSaidaPersonalizado == 0){
         time_t agora = time(NULL);
         struct tm *t = localtime(&agora);
 
