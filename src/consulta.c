@@ -88,7 +88,6 @@ int cmd_concatenar(int argc, char **argv) {
             }
         }
     }
-    printf("quantidade de pastas: %d", qtdPastas);
     if(qtdPastas >= 0){
         for(int i = 0; i <= qtdPastas; i++){
             DIR *dir = opendir(pastas[i]);
@@ -106,12 +105,11 @@ int cmd_concatenar(int argc, char **argv) {
                         strcpy(arquivos[qtdarquivos], caminhoCompleto);
                         qtdarquivos++;
                     } else {
-                        closedir(dir);
                         continue;
                     }
                 }else{
                     printf("Limite de 1024 Arquivos atingido!\n");
-                     closedir(dir);
+                    closedir(dir);
                     break;
                 }
             } 
