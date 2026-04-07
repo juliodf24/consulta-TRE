@@ -35,6 +35,35 @@ int cmd_help(int argc, char **argv){
 
 int cmd_buscar(int argc, char **argv){
     printf("buscar\n");
+    // retirar o "-b"
+    argc--;
+    argv++;
+
+    char nomeArquivo[] = argv[0];
+    FILE *arquivoDeBusca = fopen(nomeArquivo, "r");
+    if(arquivoDeBusca == 0){
+        perror("Falha ao acessar o arquivo de busca");
+        return ERRO;
+    }
+    UnidadeJurisdiciona_Struct * unidadeStruct = malloc(1 * sizeof(UnidadeJurisdiciona_Struct));
+
+    fscanf(arquivoDeBusca, "%[^;];%[^;];%[^;];%[^;];%[^;];%[^;];%[^;];%[^;];%[^;];%[^;];%[^;];%[^;];%[^;];%[^;];%[^;];\n", 
+        unidadeStruct->sigla_tribunal,
+        unidadeStruct->procedimento,
+        unidadeStruct->ramo_justica,
+        unidadeStruct->sigla_grau,
+        unidadeStruct->uf_oj,
+        unidadeStruct->municipio_oj,
+        unidadeStruct->id_ultimo_oj,
+        unidadeStruct->nome,
+        unidadeStruct->mesano_cnm1,
+        unidadeStruct->mesano_sent,
+        unidadeStruct->casos_novos_2026,
+        unidadeStruct->julgados_2026,
+        unidadeStruct->prim_sent2026,
+        unidadeStruct->suspensos_2026,
+        unidadeStruct->dessobrestados_2026
+    );
 };
 
 int cmd_versao(int argc, char **argv){
