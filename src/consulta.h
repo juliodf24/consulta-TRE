@@ -1,12 +1,12 @@
 #ifndef CONSULTA_H
 #define CONSULTA_H
 #define ERRO -1
+
 typedef struct {
 	char *cmd; //string do comando Ex: "-h"
     // armazena um ponteiro para uma função Ex: cmd_help
 	int (*fn)(int, char **); // int para receber o argc e char** para receber o endereco de argv
 } comando_struct;
-
 
 typedef struct {
     char sigla_tribunal[50];
@@ -15,7 +15,7 @@ typedef struct {
     char sigla_grau[255];
     char uf_oj[4];
     char municipio_oj[255];
-    char id_ultimo_oj[255];
+    int id_ultimo_oj;
     char nome[255];
     char mesano_cnm1[255];
     char mesano_sent[255];
