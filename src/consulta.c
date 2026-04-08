@@ -165,16 +165,18 @@ int cmd_buscar(int argc, char **argv){
     // pular linha
     char linha[1024];
     fgets(linha, sizeof(linha), arquivoDeBusca);
+    
 
     // arquivo de saida
     char nomeSaida[500];
     snprintf(nomeSaida, sizeof(nomeSaida), "%s.csv", palavraBusca);
 
-    FILE *output = fopen(nomeSaida, "a");
+    FILE *output = fopen(nomeSaida, "w");
     if(output == NULL){
         printf("Erro ao criar o Arquivo de saida!");
         return ERRO;
     }
+    fputs(linha, output);
 
     int linhasLidas = 0;
     int itensEncontrados = 0;
