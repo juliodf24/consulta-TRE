@@ -16,7 +16,7 @@ O **consulta-TRE** permite realizar operações como:
 ## Compilação
 
 ```bash
-gcc src/main.c src/comando.c -o tre
+gcc src/main.c src/consulta.c -o tre
 ```
 
 ---
