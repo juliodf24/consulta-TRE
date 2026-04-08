@@ -37,11 +37,14 @@ int main(int argc, char *argv[]){
     argv++;
     if(comando){
         int resultado = comando->fn(argc , argv++);
-    } else{
-        printf("Comando não encontrado!\n");
-        encontrarComando("-h")->fn(argc ,argv);
-        exit(0);
+        if(resultado == 0){
+            return 0;
+        }
+    } else {
+            printf("Comando não encontrado!\n");
     }
 
-    return 0;
+    printf("\n");
+    encontrarComando("-h")->fn(argc ,argv);
+    exit(0);
 }
