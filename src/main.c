@@ -9,7 +9,8 @@ static comando_struct comandos[] = {
     {"-h", cmd_help},
     {"-c", cmd_concatenar},
     {"-b", cmd_buscar},
-    {"-v", cmd_versao}
+    {"-v", cmd_versao},
+    {"-r", cmd_resumir}
 }; // cadastra os comandos na lista de comandos
 
 // recebe uma string e retorna o comando no formato comando_struct caso exista, se não retorna null

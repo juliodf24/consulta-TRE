@@ -5,6 +5,63 @@
 #include <dirent.h>
 #include "consulta.h"
 
+ListaUnidades* criarListaUnidade() {
+    ListaUnidades *lista = malloc(sizeof(ListaUnidades));
+    lista->tamanho = 0;
+    lista->dados = NULL;
+    return lista;
+}
+
+void adicionarNaListaUnidade(ListaUnidades *lista, UnidadeJurisdiciona_Struct item) {
+    lista->dados = realloc(lista->dados,(lista->tamanho + 1) * sizeof(UnidadeJurisdiciona_Struct));
+    lista->dados[lista->tamanho] = item;
+    lista->tamanho++;
+}
+
+ARQUIVO* abrirArquivo(char* nome, char* tipoAbertura) {
+    char nomeArquivo[LimiteNomeArquivo + 1];
+    if (strlen(nome) == 0) {
+        time_t agora = time(0);
+        struct tm *t = localtime(&agora);
+        strftime(nomeArquivo, sizeof(nomeArquivo),"output_%d-%m-%Y_%H-%M-%S.csv", t);
+    } else {
+        strcpy(nomeArquivo, nome);
+    }
+    FILE* arquivoAberto = fopen(nomeArquivo, tipoAbertura);
+    if (!arquivoAberto) {
+        perror("Erro ao abrir arquivo");
+        return 0;
+    }
+    ARQUIVO* arq = malloc(sizeof(ARQUIVO));
+    if (!arq) {
+        perror("Erro ao alocar memória");
+        fclose(arquivoAberto);
+        return 0;
+    }
+    arq->fileArquivo = arquivoAberto;
+    strcpy(arq->nomeArquivo, nomeArquivo);
+    return arq;
+}
+
+int fecharArquivo(ARQUIVO *arquivo) {
+    if (!arquivo) return 0;
+    if (arquivo->fileArquivo) {
+        fclose(arquivo->fileArquivo);
+    }
+    free(arquivo);
+    return 0;
+}
+
+int excluirArquivo(ARQUIVO *arquivo){
+    if (!arquivo) return 0;
+    if (arquivo->fileArquivo) {
+        fclose(arquivo->fileArquivo);
+    }
+    remove(arquivo->nomeArquivo);
+    free(arquivo);
+    return 0;
+}
+
 
 int concatenar(char* caminhoArquivo, FILE* output, int primeiro){
     char linha[1024];
@@ -33,7 +90,7 @@ int concatenar(char* caminhoArquivo, FILE* output, int primeiro){
 int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
     int teste = 0;
 
-    teste += fscanf(arquivo, "\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%d,\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%d,%d,%d,%d,%d",
+    teste += fscanf(arquivo, "\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%d,\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%lf,%lf,%lf,%lf,%lf",
         UnidadeStruct->sigla_tribunal,
         UnidadeStruct->procedimento,
         UnidadeStruct->ramo_justica,
@@ -51,7 +108,7 @@ int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
         &UnidadeStruct->dessobrestados_2026
     );
 
-    teste += fscanf(arquivo,",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+    teste += fscanf(arquivo,",%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
         &UnidadeStruct->cumprimento_meta1,
         &UnidadeStruct->distm2_a,
         &UnidadeStruct->julgm2_a,
@@ -66,7 +123,7 @@ int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
         &UnidadeStruct->julgm4_a
     );
 
-    teste += fscanf(arquivo,",%d,%d,%d,%d,%d,%d\n",
+    teste += fscanf(arquivo,",%lf,%lf,%lf,%lf,%lf,%lf\n",
         &UnidadeStruct->suspm4_a,
         &UnidadeStruct->cumprimento_meta4a,
         &UnidadeStruct->distm4_b,
@@ -74,12 +131,14 @@ int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
         &UnidadeStruct->suspm4_b,
         &UnidadeStruct->cumprimento_meta4b
     );
+    printf("teste: %d\nLinha Aqui: %d\n", teste, UnidadeStruct->id_ultimo_oj);
     return teste;
+
 }
 int escreverAPartirDeStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
     int teste = 0;
 
-    teste += fprintf(arquivo, "\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,\"%s\",\"%s\",\"%s\",%d,%d,%d,%d,%d",
+    teste += fprintf(arquivo, "\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,\"%s\",\"%s\",\"%s\",%.0lf,%.0lf,%.0lf,%.0lf,%.0lf",
         UnidadeStruct->sigla_tribunal,
         UnidadeStruct->procedimento,
         UnidadeStruct->ramo_justica,
@@ -97,7 +156,7 @@ int escreverAPartirDeStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeS
         UnidadeStruct->dessobrestados_2026
     );
 
-    teste += fprintf(arquivo,",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+    teste += fprintf(arquivo,",%.0lf,%.0lf,%.0lf,%.0lf,%.0lf,%.0lf,%.0lf,%.0lf,%.0lf,%.0lf,%.0lf,%.0lf",
         UnidadeStruct->cumprimento_meta1,
         UnidadeStruct->distm2_a,
         UnidadeStruct->julgm2_a,
@@ -112,7 +171,7 @@ int escreverAPartirDeStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeS
         UnidadeStruct->julgm4_a
     );
 
-    teste += fprintf(arquivo,",%d,%d,%d,%d,%d,%d\n",
+    teste += fprintf(arquivo,",%.0lf,%.0lf,%.0lf,%.0lf,%.0lf,%.0lf\n",
         UnidadeStruct->suspm4_a,
         UnidadeStruct->cumprimento_meta4a,
         UnidadeStruct->distm4_b,
@@ -126,6 +185,11 @@ int escreverAPartirDeStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeS
 int cmd_help(int argc, char **argv){
     printf("ajuda\n");
 };
+
+int pularLinha(ARQUIVO* arquivo){
+    char linha[TamanhoLinha];
+    fgets(linha, sizeof(linha), arquivo->fileArquivo);
+}
 
 int cmd_buscar(int argc, char **argv){
     // retirar o "-b"
@@ -163,7 +227,7 @@ int cmd_buscar(int argc, char **argv){
     UnidadeJurisdiciona_Struct * unidade = malloc(1 * sizeof(UnidadeJurisdiciona_Struct));
 
     // pular linha
-    char linha[1024];
+    char linha[TamanhoLinha];
     fgets(linha, sizeof(linha), arquivoDeBusca);
     
 
@@ -179,18 +243,28 @@ int cmd_buscar(int argc, char **argv){
     fputs(linha, output);
 
     int linhasLidas = 0;
+    int linhasPuladas = 0;
     int itensEncontrados = 0;
   
     // 33 quantidade de itens lidos ou seja quantidade de colunas no csv
-    while (alimentarStruct(arquivoDeBusca, unidade) == 33) {
-        if(strcmp(opcao, "-m") == 0){
-            if(strcmp(palavraBusca, unidade->municipio_oj) == 0){
-                escreverAPartirDeStruct(output, unidade);
-                itensEncontrados++;
+    int camposLidos = alimentarStruct(arquivoDeBusca, unidade);
+
+    do{
+        if(camposLidos == 33){
+            if(strcmp(opcao, "-m") == 0){
+                if(strcmp(palavraBusca, unidade->municipio_oj) == 0){
+                    escreverAPartirDeStruct(output, unidade);
+                    itensEncontrados++;
+                }
+                linhasLidas++;
             }
+        } else {
+            linhasPuladas++;
         }
-        linhasLidas++;
-    }
+        camposLidos = alimentarStruct(arquivoDeBusca, unidade);        
+    } while(camposLidos > 0);
+
+    printf("Acabou camposLidos: %d\n", camposLidos);
     
     if(linhasLidas < 1){
         perror("Nehuma linha lida");
@@ -207,7 +281,7 @@ int cmd_buscar(int argc, char **argv){
         return ERRO;
     }
 
-    printf("Linhas Lidas: %d\nItens encontrados: %d\nArquivo resultante: %s\n", linhasLidas, itensEncontrados, nomeSaida);
+    printf("Linhas Lidas: %d\nLinhas Puladas: %d\nItens encontrados: %d\nArquivo resultante: %s\n", linhasLidas,linhasPuladas, itensEncontrados, nomeSaida);
 
     fclose(arquivoDeBusca);
     fclose(output);
@@ -331,5 +405,48 @@ int cmd_concatenar(int argc, char **argv) {
     return 0;
 }
 
+// retorna o local se achar, senão -1
+int temNaLista(char lista[50][100], char* palavra){
+    for(int i = 0; i < 50; i++){
+        if(strcmp(lista[i], palavra) == 0){
+            return i;
+        }
+    }
+    return -1;
+}
+
+// adiciona e retorna local se nao -1
+int adicionarNaLista(char lista[50][100], char* palavra){
+    for(int i = 0; i < 50; i++){
+        if(strlen(lista[i]) == 0){
+            strcpy(lista[i], palavra);
+            return i;
+        }
+    }
+    return -1;
+}
+
+int cmd_resumir(int argc, char **argv){
+    if(argc < 2) return ERRO;
+
+    ARQUIVO* arquivoBusca = abrirArquivo(argv[1], "r");
+    pularLinha(arquivoBusca);
+    ARQUIVO* arquivoSaida = abrirArquivo("", "w");
+    UnidadeJurisdiciona_Struct* unidade = malloc(sizeof(UnidadeJurisdiciona_Struct));
+    char lista[50][100] = {0};
+    memset(lista, 0, sizeof(lista));
+
+    
+    int leu = alimentarStruct(arquivoBusca->fileArquivo, unidade);
+    if(temNaLista(lista, unidade->sigla_tribunal) == -1){
+        adicionarNaLista(lista, unidade->sigla_tribunal);
+    }
+
+    printf("leu: %d\nunidade: %s\nLISTA: %s", leu,unidade->sigla_tribunal,lista[0]);
+
+    fecharArquivo(arquivoBusca);
+    excluirArquivo(arquivoSaida);
+
+}
 
 
