@@ -85,7 +85,56 @@ char* proximoCampo(char **linha) {
 
     return inicio;
 }
+void printUnidade(Unidade_Struct *u) {
+    if (u == NULL) {
+        printf("Struct NULL\n");
+        return;
+    }
 
+    printf("sigla_tribunal: %s\n", u->sigla_tribunal);
+    printf("procedimento: %s\n", u->procedimento);
+    printf("ramo_justica: %s\n", u->ramo_justica);
+    printf("sigla_grau: %s\n", u->sigla_grau);
+    printf("uf_oj: %s\n", u->uf_oj);
+    printf("municipio_oj: %s\n", u->municipio_oj);
+
+    printf("id_ultimo_oj: %f\n", u->id_ultimo_oj);
+
+    printf("nome: %s\n", u->nome);
+    printf("mesano_cnm1: %s\n", u->mesano_cnm1);
+    printf("mesano_sent: %s\n", u->mesano_sent);
+
+    printf("casos_novos_2026: %f\n", u->casos_novos_2026);
+    printf("julgados_2026: %f\n", u->julgados_2026);
+    printf("prim_sent2026: %f\n", u->prim_sent2026);
+    printf("suspensos_2026: %f\n", u->suspensos_2026);
+    printf("dessobrestados_2026: %f\n", u->dessobrestados_2026);
+
+    printf("cumprimento_meta1: %f\n", u->cumprimento_meta1);
+
+    printf("distm2_a: %f\n", u->distm2_a);
+    printf("julgm2_a: %f\n", u->julgm2_a);
+    printf("suspm2_a: %f\n", u->suspm2_a);
+    printf("cumprimento_meta2a: %f\n", u->cumprimento_meta2a);
+
+    printf("distm2_ant: %f\n", u->distm2_ant);
+    printf("julgm2_ant: %f\n", u->julgm2_ant);
+    printf("suspm2_ant: %f\n", u->suspm2_ant);
+    printf("desom2_ant: %f\n", u->desom2_ant);
+    printf("cumprimento_meta2ant: %f\n", u->cumprimento_meta2ant);
+
+    printf("distm4_a: %f\n", u->distm4_a);
+    printf("julgm4_a: %f\n", u->julgm4_a);
+    printf("suspm4_a: %f\n", u->suspm4_a);
+    printf("cumprimento_meta4a: %f\n", u->cumprimento_meta4a);
+
+    printf("distm4_b: %f\n", u->distm4_b);
+    printf("julgm4_b: %f\n", u->julgm4_b);
+    printf("suspm4_b: %f\n", u->suspm4_b);
+    printf("cumprimento_meta4b: %f\n", u->cumprimento_meta4b);
+
+    printf("====================================\n");
+}
 
 
 int lerStruct(ARQUIVO *arquivo, Unidade_Struct* unidade){
@@ -107,6 +156,7 @@ int lerStruct(ARQUIVO *arquivo, Unidade_Struct* unidade){
         count++;
         token = strtok(NULL, ",");
     }
+
     printf("linha: %s\n", linha);
 
     if (count != 33) {
@@ -231,12 +281,12 @@ int cmd_search(int argc, char **argv){
     }
 
     Unidade_Struct* unidade = malloc(sizeof(Unidade_Struct));
+    printUnidade(unidade);
 
 
     lerStruct(arquivoBusca, unidade);
 
     free(unidade);
     fecharArquivo(arquivoBusca);
-    fecharArquivo(arquivoSaida);
     return 0;
 }
