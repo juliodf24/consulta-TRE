@@ -30,53 +30,19 @@ int concatenar(char* caminhoArquivo, FILE* output, int primeiro){
 }
 
 // alimenta a struct com uma linha e anda o ponterio do arquivo 1 linha 
-int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
-    int teste = 0;
+int alimentarStruct(FILE *arquivo, Unidade_Struct *u) {
+    int catacteresLidos = 0;
+    char linha[2048];
+    fgets(linha, sizeof(linha), arquivo);
+    printf("Linha: %s\nCaracteres Lidos: %d", linha, catacteresLidos);
+    if (!catacteresLidos)
+        return 0;
 
-    teste += fscanf(arquivo, "\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%d,\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%d,%d,%d,%d,%d",
-        UnidadeStruct->sigla_tribunal,
-        UnidadeStruct->procedimento,
-        UnidadeStruct->ramo_justica,
-        UnidadeStruct->sigla_grau,
-        UnidadeStruct->uf_oj,
-        UnidadeStruct->municipio_oj,
-        &UnidadeStruct->id_ultimo_oj,
-        UnidadeStruct->nome,
-        UnidadeStruct->mesano_cnm1,
-        UnidadeStruct->mesano_sent,
-        &UnidadeStruct->casos_novos_2026,
-        &UnidadeStruct->julgados_2026,
-        &UnidadeStruct->prim_sent2026,
-        &UnidadeStruct->suspensos_2026,
-        &UnidadeStruct->dessobrestados_2026
-    );
+    
 
-    teste += fscanf(arquivo,",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-        &UnidadeStruct->cumprimento_meta1,
-        &UnidadeStruct->distm2_a,
-        &UnidadeStruct->julgm2_a,
-        &UnidadeStruct->suspm2_a,
-        &UnidadeStruct->cumprimento_meta2a,
-        &UnidadeStruct->distm2_ant,
-        &UnidadeStruct->julgm2_ant,
-        &UnidadeStruct->suspm2_ant,
-        &UnidadeStruct->desom2_ant,
-        &UnidadeStruct->cumprimento_meta2ant,
-        &UnidadeStruct->distm4_a,
-        &UnidadeStruct->julgm4_a
-    );
-
-    teste += fscanf(arquivo,",%d,%d,%d,%d,%d,%d\n",
-        &UnidadeStruct->suspm4_a,
-        &UnidadeStruct->cumprimento_meta4a,
-        &UnidadeStruct->distm4_b,
-        &UnidadeStruct->julgm4_b,
-        &UnidadeStruct->suspm4_b,
-        &UnidadeStruct->cumprimento_meta4b
-    );
-    return teste;
+    return 0;
 }
-int escreverAPartirDeStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
+int escreverAPartirDeStruct(FILE *arquivo, Unidade_Struct * UnidadeStruct){
     int teste = 0;
 
     teste += fprintf(arquivo, "\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,\"%s\",\"%s\",\"%s\",%d,%d,%d,%d,%d",
@@ -160,7 +126,7 @@ int cmd_buscar(int argc, char **argv){
         perror("Falha ao acessar o arquivo de busca");
         return ERRO;
     }
-    UnidadeJurisdiciona_Struct * unidade = malloc(1 * sizeof(UnidadeJurisdiciona_Struct));
+    Unidade_Struct * unidade = malloc(1 * sizeof(Unidade_Struct));
 
     // pular linha
     char linha[1024];
