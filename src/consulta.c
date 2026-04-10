@@ -5,6 +5,49 @@
 #include <dirent.h>
 #include "consulta.h"
 
+ARQUIVO* abrirArquivo(char* nome, char* tipoAbertura) {
+    char nomeArquivo[LimiteNomeArquivo + 1];
+    if (strlen(nome) == 0) {
+        time_t agora = time(0);
+        struct tm *t = localtime(&agora);
+        strftime(nomeArquivo, sizeof(nomeArquivo),"output_%d-%m-%Y_%H-%M-%S.csv", t);
+    } else {
+        strcpy(nomeArquivo, nome);
+    }
+    FILE* arquivoAberto = fopen(nomeArquivo, tipoAbertura);
+    if (!arquivoAberto) {
+        perror("Erro ao abrir arquivo");
+        return 0;
+    }
+    ARQUIVO* arq = malloc(sizeof(ARQUIVO));
+    if (!arq) {
+        perror("Erro ao alocar memória");
+        fclose(arquivoAberto);
+        return 0;
+    }
+    arq->fileArquivo = arquivoAberto;
+    strcpy(arq->nomeArquivo, nomeArquivo);
+    return arq;
+}
+
+int fecharArquivo(ARQUIVO *arquivo) {
+    if (!arquivo) return 0;
+    if (arquivo->fileArquivo) {
+        fclose(arquivo->fileArquivo);
+    }
+    free(arquivo);
+    return 0;
+}
+
+int excluirArquivo(ARQUIVO *arquivo){
+    if (!arquivo) return 0;
+    if (arquivo->fileArquivo) {
+        fclose(arquivo->fileArquivo);
+    }
+    remove(arquivo->nomeArquivo);
+    free(arquivo);
+    return 0;
+}
 
 int concatenar(char* caminhoArquivo, FILE* output, int primeiro){
     char linha[1024];
@@ -120,38 +163,30 @@ int cmd_buscar(int argc, char **argv){
         strcpy(palavraBusca, argv[1]);
     }
 
-
-    FILE *arquivoDeBusca = fopen(nomeArquivo, "r");
-    if(arquivoDeBusca == 0){
-        perror("Falha ao acessar o arquivo de busca");
-        return ERRO;
-    }
+    ARQUIVO* arquivoBusca = abrirArquivo(nomeArquivo, "r");
+    
     Unidade_Struct * unidade = malloc(1 * sizeof(Unidade_Struct));
 
     // pular linha
     char linha[1024];
-    fgets(linha, sizeof(linha), arquivoDeBusca);
+    fgets(linha, sizeof(linha), arquivoBusca->fileArquivo);
     
-
     // arquivo de saida
     char nomeSaida[500];
     snprintf(nomeSaida, sizeof(nomeSaida), "%s.csv", palavraBusca);
 
-    FILE *output = fopen(nomeSaida, "w");
-    if(output == NULL){
-        printf("Erro ao criar o Arquivo de saida!");
-        return ERRO;
-    }
-    fputs(linha, output);
+    ARQUIVO* arquivoSaida = abrirArquivo(nomeArquivo, "w");
+    
+    fputs(linha, arquivoSaida->fileArquivo);
 
     int linhasLidas = 0;
     int itensEncontrados = 0;
   
     // 33 quantidade de itens lidos ou seja quantidade de colunas no csv
-    while (alimentarStruct(arquivoDeBusca, unidade) == 33) {
+    while (alimentarStruct(arquivoBusca->fileArquivo, unidade) == 33) {
         if(strcmp(opcao, "-m") == 0){
             if(strcmp(palavraBusca, unidade->municipio_oj) == 0){
-                escreverAPartirDeStruct(output, unidade);
+                escreverAPartirDeStruct(arquivoSaida->fileArquivo, unidade);
                 itensEncontrados++;
             }
         }
@@ -160,23 +195,23 @@ int cmd_buscar(int argc, char **argv){
     
     if(linhasLidas < 1){
         perror("Nehuma linha lida");
-        fclose(arquivoDeBusca);
-        fclose(output);
+        fecharArquivo(arquivoBusca);
+        excluirArquivo(arquivoSaida);
         remove(nomeSaida);
         return ERRO;
     }
     if(itensEncontrados < 1){
         printf("Nehum item encontrado");
-        fclose(arquivoDeBusca);
-        fclose(output);
+        fecharArquivo(arquivoBusca);
+        excluirArquivo(arquivoSaida);
         remove(nomeSaida);
         return ERRO;
     }
 
     printf("Linhas Lidas: %d\nItens encontrados: %d\nArquivo resultante: %s\n", linhasLidas, itensEncontrados, nomeSaida);
 
-    fclose(arquivoDeBusca);
-    fclose(output);
+    fecharArquivo(arquivoBusca);
+    fecharArquivo(arquivoSaida);
 };
 
 int cmd_versao(int argc, char **argv){
@@ -264,27 +299,18 @@ int cmd_concatenar(int argc, char **argv) {
     }
         
     // cria o nome de saida padrão no formato output_Dia-Mês-Ano_Hora-Minutos-Segundos
-    if(nomeSaidaPersonalizado == 0){
-        time_t agora = time(NULL);
-        struct tm *t = localtime(&agora);
-
-        char nomePadraoData[32];
-        strftime(nomePadraoData, sizeof(nomePadraoData), "output_%d-%m-%Y_%H-%M-%S.csv", t);
-        strcpy(nomeSaida, nomePadraoData);
-    }
-
-    FILE *output = fopen(nomeSaida, "a");
+    ARQUIVO* arquivoOutput = abrirArquivo("", "a");
 
     //Verifica se foi possivel criar ou abrir o arquivo de saida
-    if(output == NULL){
+    if(arquivoOutput->fileArquivo == NULL){
         printf("Erro ao criar o Arquivo de saida!");
         return ERRO;
     }
 
     for(int i = 0; i < qtdarquivos; i++){
         int resultado;
-        if(i == 0) resultado = concatenar(arquivos[i], output, 1);
-        else resultado = concatenar(arquivos[i], output, 0);
+        if(i == 0) resultado = concatenar(arquivos[i], arquivoOutput->fileArquivo, 1);
+        else resultado = concatenar(arquivos[i], arquivoOutput->fileArquivo, 0);
 
         if(resultado == ERRO){
             remove(nomeSaida);
@@ -292,8 +318,8 @@ int cmd_concatenar(int argc, char **argv) {
         }
     }
     
-    fclose(output);
-
+    printf("Arquivo Gerado: %s\n", arquivoOutput->nomeArquivo);
+    fecharArquivo(arquivoOutput);
     return 0;
 }
 
