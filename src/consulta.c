@@ -4,6 +4,8 @@
 #include <time.h>
 #include <dirent.h>
 #include "consulta.h"
+#include <math.h>
+
 
 ListaUnidades* criarListaUnidade() {
     ListaUnidades *lista = malloc(sizeof(ListaUnidades));
@@ -12,10 +14,45 @@ ListaUnidades* criarListaUnidade() {
     return lista;
 }
 
-void adicionarNaListaUnidade(ListaUnidades *lista, UnidadeJurisdiciona_Struct item) {
-    lista->dados = realloc(lista->dados,(lista->tamanho + 1) * sizeof(UnidadeJurisdiciona_Struct));
-    lista->dados[lista->tamanho] = item;
-    lista->tamanho++;
+void adicionarNaListaUnidade(ListaUnidades *lista, UnidadeJurisdiciona_Struct* unidade){
+        int itemExistente = buscarUnidade(lista, unidade->sigla_tribunal);
+
+        if(itemExistente != -1){
+            lista->dados[itemExistente].julgados_2026 += unidade->julgados_2026;
+            lista->dados[itemExistente].casos_novos_2026 += unidade->casos_novos_2026;
+            lista->dados[itemExistente].dessobrestados_2026 += unidade->dessobrestados_2026;
+            lista->dados[itemExistente].suspensos_2026 += unidade->suspensos_2026;
+            lista->dados[itemExistente].julgm2_a += unidade->julgm2_a;
+            lista->dados[itemExistente].distm2_a += unidade->distm2_a;
+            lista->dados[itemExistente].suspm2_a += unidade->suspm2_a;
+            lista->dados[itemExistente].julgm2_ant += unidade->julgm2_ant;
+            lista->dados[itemExistente].distm2_ant += unidade->distm2_ant;
+            lista->dados[itemExistente].suspm2_ant += unidade->suspm2_ant;
+            lista->dados[itemExistente].desom2_ant += unidade->desom2_ant;
+            lista->dados[itemExistente].julgm4_a += unidade->julgm4_a;
+            lista->dados[itemExistente].distm4_a += unidade->distm4_a;
+            lista->dados[itemExistente].suspm4_a += unidade->suspm4_a;
+            lista->dados[itemExistente].julgm4_b += unidade->julgm4_b;
+            lista->dados[itemExistente].distm4_b += unidade->distm4_b;
+            lista->dados[itemExistente].suspm4_b += unidade->suspm4_b;
+
+            return;
+        }
+
+        lista->dados = realloc(lista->dados,
+            (lista->tamanho + 1) * sizeof(UnidadeJurisdiciona_Struct));
+
+        lista->dados[lista->tamanho] = *unidade;
+        lista->tamanho++;
+}
+
+int buscarUnidade(ListaUnidades *lista, char *sigla){
+    for(int i = 0; i < lista->tamanho; i++){
+        if(strcmp(lista->dados[i].sigla_tribunal, sigla) == 0){
+            return i;
+        }
+    }
+    return -1;
 }
 
 ARQUIVO* abrirArquivo(char* nome, char* tipoAbertura) {
@@ -131,7 +168,6 @@ int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
         &UnidadeStruct->suspm4_b,
         &UnidadeStruct->cumprimento_meta4b
     );
-    printf("teste: %d\nLinha Aqui: %d\n", teste, UnidadeStruct->id_ultimo_oj);
     return teste;
 
 }
@@ -425,28 +461,97 @@ int adicionarNaLista(char lista[50][100], char* palavra){
     }
     return -1;
 }
+// remove e retorna a posição removida, se não achar retorna -1
+int removerDaLista(char lista[50][100], char* palavra){
+    for(int i = 0; i < 50; i++){
+        if(strcmp(lista[i], palavra) == 0){
+            lista[i][0] = '\0'; 
+            return i;
+        }
+    }
+    return -1;
+}
+
+double safe_div(double numerador, double denominador) {
+    // isfinite retorna 0 se o número for inf ou NaN
+    if (!isfinite(denominador) || denominador == 0) {
+        return 0.0; 
+    }
+    return numerador / denominador;
+}
 
 int cmd_resumir(int argc, char **argv){
     if(argc < 2) return ERRO;
 
     ARQUIVO* arquivoBusca = abrirArquivo(argv[1], "r");
     pularLinha(arquivoBusca);
-    ARQUIVO* arquivoSaida = abrirArquivo("", "w");
-    UnidadeJurisdiciona_Struct* unidade = malloc(sizeof(UnidadeJurisdiciona_Struct));
-    char lista[50][100] = {0};
-    memset(lista, 0, sizeof(lista));
 
-    
-    int leu = alimentarStruct(arquivoBusca->fileArquivo, unidade);
-    if(temNaLista(lista, unidade->sigla_tribunal) == -1){
-        adicionarNaLista(lista, unidade->sigla_tribunal);
+    ARQUIVO* arquivoSaida = abrirArquivo("", "w");
+
+    UnidadeJurisdiciona_Struct* unidade = malloc(sizeof(UnidadeJurisdiciona_Struct));
+    ListaUnidades* listaDeUnidades = criarListaUnidade(); 
+
+    char lista[50][100] = {0};
+
+    int linhasLidas = 0;
+    int linhasPuladas = 0;
+
+    int camposLidos;
+
+    while((camposLidos = alimentarStruct(arquivoBusca->fileArquivo, unidade)) > 0){
+        linhasLidas++;
+
+        if(camposLidos == 33){
+            if(temNaLista(lista, unidade->sigla_tribunal) == -1){
+                adicionarNaLista(lista, unidade->sigla_tribunal);
+            }
+        } else {
+            linhasPuladas++;
+        }
     }
 
-    printf("leu: %d\nunidade: %s\nLISTA: %s", leu,unidade->sigla_tribunal,lista[0]);
+    rewind(arquivoBusca->fileArquivo);
+    pularLinha(arquivoBusca);
+
+    while((camposLidos = alimentarStruct(arquivoBusca->fileArquivo, unidade)) > 0){
+        if(camposLidos == 33){
+            for(int i = 0; i < 50; i++){
+                if(strlen(lista[i]) > 0){
+                    if(strcmp(unidade->sigla_tribunal, lista[i]) == 0){
+                        adicionarNaListaUnidade(listaDeUnidades, unidade);
+                    }
+                }
+            }
+        }
+    }
+    fprintf(arquivoSaida->fileArquivo, "\"sigla_tribunal\",\"Meta1\",\"Meta2A\",\"Meta2Ant\",\"Meta4A\",\"Meta4B\"\n");
+    for(int i = 0; i < listaDeUnidades->tamanho; i++){
+        UnidadeJurisdiciona_Struct u = listaDeUnidades->dados[i];     
+
+        double meta1   = safe_div(u.julgados_2026, (u.casos_novos_2026 + u.dessobrestados_2026 - u.suspensos_2026)) * 100.0;
+        double meta2A  = safe_div(u.julgm2_a, (u.distm2_a - u.suspm2_a)) * (1000.0 / 7.0);
+        double meta2ant = safe_div(u.julgm2_ant, (u.distm2_ant - u.suspm2_ant - u.desom2_ant)) * 100.0;
+        double meta4A  = safe_div(u.julgm4_a, (u.distm4_a - u.suspm4_a)) * 100.0;
+        double meta4B  = safe_div(u.julgm4_b, (u.distm4_b - u.suspm4_b)) * 100.0;
+
+        fprintf(arquivoSaida->fileArquivo,
+                "%s;%.2lf;%.2lf;%.2lf;%.2lf;%.2lf;\n",
+                u.sigla_tribunal,
+                meta1,
+                meta2A,
+                meta2ant,
+                meta4A,
+                meta4B
+        );
+    }
+
+    printf("linhas lidas: %d\n", linhasLidas);
+    printf("resultado: %s", arquivoSaida->nomeArquivo);
 
     fecharArquivo(arquivoBusca);
-    excluirArquivo(arquivoSaida);
+    fecharArquivo(arquivoSaida);
 
+    return 0;
 }
 
 

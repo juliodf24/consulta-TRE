@@ -72,6 +72,7 @@ typedef struct {
 
 ListaUnidades* criarListaUnidade();
 
-void adicionarNaListaUnidade(ListaUnidades *lista, UnidadeJurisdiciona_Struct item);
+void adicionarNaListaUnidade(ListaUnidades *lista, UnidadeJurisdiciona_Struct* unidade);
+int buscarUnidade(ListaUnidades *lista, char *sigla);
 
 #endif
