@@ -126,8 +126,10 @@ int concatenar(char* caminhoArquivo, FILE* output, int primeiro){
 // alimenta a struct com uma linha e anda o ponterio do arquivo 1 linha 
 int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
     int teste = 0;
+    char linha[TamanhoLinha];
+    fgets(linha, sizeof(linha), arquivo);
 
-    teste += fscanf(arquivo, "\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%d,\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%lf,%lf,%lf,%lf,%lf",
+    teste = sscanf(linha,"\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%d,\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
         UnidadeStruct->sigla_tribunal,
         UnidadeStruct->procedimento,
         UnidadeStruct->ramo_justica,
@@ -142,10 +144,7 @@ int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
         &UnidadeStruct->julgados_2026,
         &UnidadeStruct->prim_sent2026,
         &UnidadeStruct->suspensos_2026,
-        &UnidadeStruct->dessobrestados_2026
-    );
-
-    teste += fscanf(arquivo,",%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
+        &UnidadeStruct->dessobrestados_2026, // Faltava vírgula aqui
         &UnidadeStruct->cumprimento_meta1,
         &UnidadeStruct->distm2_a,
         &UnidadeStruct->julgm2_a,
@@ -157,10 +156,7 @@ int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
         &UnidadeStruct->desom2_ant,
         &UnidadeStruct->cumprimento_meta2ant,
         &UnidadeStruct->distm4_a,
-        &UnidadeStruct->julgm4_a
-    );
-
-    teste += fscanf(arquivo,",%lf,%lf,%lf,%lf,%lf,%lf\n",
+        &UnidadeStruct->julgm4_a, // Faltava vírgula aqui
         &UnidadeStruct->suspm4_a,
         &UnidadeStruct->cumprimento_meta4a,
         &UnidadeStruct->distm4_b,
@@ -295,12 +291,11 @@ int cmd_buscar(int argc, char **argv){
                 linhasLidas++;
             }
         } else {
+            linhasLidas++;
             linhasPuladas++;
         }
         camposLidos = alimentarStruct(arquivoDeBusca, unidade);        
-    } while(camposLidos > 0);
-
-    printf("Acabou camposLidos: %d\n", camposLidos);
+    } while(camposLidos > 1);
     
     if(linhasLidas < 1){
         perror("Nehuma linha lida");
