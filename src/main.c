@@ -46,6 +46,6 @@ int main(int argc, char *argv[]){
     }
 
     printf("\n");
-    encontrarComando("-h")->fn(argc ,argv);
+    printf("Use -h para ver os comandos disponíveis.\n");
     exit(0);
 }

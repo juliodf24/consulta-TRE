@@ -127,7 +127,9 @@ int concatenar(char* caminhoArquivo, FILE* output, int primeiro){
 int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
     int teste = 0;
     char linha[TamanhoLinha];
-    fgets(linha, sizeof(linha), arquivo);
+    if (fgets(linha, sizeof(linha), arquivo) == NULL) {
+        return 0;
+    }
 
     teste = sscanf(linha,"\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%d,\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
         UnidadeStruct->sigla_tribunal,
@@ -215,7 +217,59 @@ int escreverAPartirDeStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeS
 }
 
 int cmd_help(int argc, char **argv){
-    printf("ajuda\n");
+    printf("=========================================\n");
+    printf(" Ferramenta TRE - Consulta de Dados CSV\n");
+    printf("=========================================\n\n");
+
+    printf("Uso:\n");
+    printf("  ./tre.exe [comando] [opcoes]\n\n");
+
+    printf("Comandos disponiveis:\n\n");
+
+    printf("1. Ajuda (-h)\n");
+    printf("   Exibe esta mensagem de ajuda\n");
+    printf("   Exemplo:\n");
+    printf("     ./tre.exe -h\n\n");
+
+    printf("2. Versao (-v)\n");
+    printf("   Exibe a versao do sistema\n");
+    printf("   Exemplo:\n");
+    printf("     ./tre.exe -v\n\n");
+
+    printf("3. Busca por Municipio (-b)\n");
+    printf("   Busca dados de unidades por municipio\n");
+    printf("   Uso:\n");
+    printf("     ./tre.exe -b <arquivo_entrada> -m <nome_municipio>\n");
+    printf("   Parametros:\n");
+    printf("     <arquivo_entrada>   Caminho do arquivo CSV\n");
+    printf("     <nome_municipio>    Nome exato do municipio\n");
+    printf("   Exemplos:\n");
+    printf("     ./tre.exe -b dados.csv -m ARAPIRACA\n");
+    printf("     ./tre.exe -b dados.csv -m \"BELA VISTA\"\n\n");
+
+    printf("4. Concatenar Arquivos (-c)\n");
+    printf("   Junta multiplos arquivos CSV em um unico arquivo\n");
+    printf("   Uso:\n");
+    printf("     ./tre.exe -c <arquivo1> <arquivo2> ... <arquivoN>\n");
+    printf("     ./tre.exe -c -p <diretorio1> <diretorio2> ...\n");
+    printf("   Opcoes:\n");
+    printf("     -p    Concatenar todos os CSV de uma pasta\n");
+    printf("     -o    Define nome do arquivo de saida\n");
+    printf("   Observacao:\n");
+    printf("     Caso nao informado, o nome sera gerado automaticamente\n");
+    printf("   Exemplo:\n");
+    printf("     ./tre.exe -c dados1.csv dados2.csv -o saida.csv\n\n");
+
+    printf("5. Resumir com metricas (-r)\n");
+    printf("   Gera resumo com calculos de desempenho\n");
+    printf("   Uso:\n");
+    printf("     ./tre.exe -r <arquivo_entrada>\n\n");
+
+    printf("Observacoes:\n");
+    printf("  Linhas podem ser ignoradas caso tenha falha na leitura\n");
+
+    printf("=========================================\n");
+    return 0;
 };
 
 int pularLinha(ARQUIVO* arquivo){
@@ -319,7 +373,7 @@ int cmd_buscar(int argc, char **argv){
 };
 
 int cmd_versao(int argc, char **argv){
-    printf("versão 1.0.0 BETA\n");
+    printf("versão 1.1.0 BETA\n");
 };
 
 int cmd_concatenar(int argc, char **argv) {
@@ -468,7 +522,6 @@ int removerDaLista(char lista[50][100], char* palavra){
 }
 
 double safe_div(double numerador, double denominador) {
-    // isfinite retorna 0 se o número for inf ou NaN
     if (!isfinite(denominador) || denominador == 0) {
         return 0.0; 
     }
@@ -479,12 +532,29 @@ int cmd_resumir(int argc, char **argv){
     if(argc < 2) return ERRO;
 
     ARQUIVO* arquivoBusca = abrirArquivo(argv[1], "r");
+    if (arquivoBusca == NULL) {
+        return ERRO;
+    }
     pularLinha(arquivoBusca);
 
     ARQUIVO* arquivoSaida = abrirArquivo("", "w");
+    if (arquivoSaida == NULL) {
+        fecharArquivo(arquivoBusca);
+        return ERRO;
+    }
 
     UnidadeJurisdiciona_Struct* unidade = malloc(sizeof(UnidadeJurisdiciona_Struct));
     ListaUnidades* listaDeUnidades = criarListaUnidade(); 
+    if (unidade == NULL || listaDeUnidades == NULL) {
+        free(unidade);
+        if (listaDeUnidades != NULL) {
+            free(listaDeUnidades->dados);
+            free(listaDeUnidades);
+        }
+        fecharArquivo(arquivoBusca);
+        fecharArquivo(arquivoSaida);
+        return ERRO;
+    }
 
     char lista[50][100] = {0};
 
@@ -504,6 +574,7 @@ int cmd_resumir(int argc, char **argv){
             linhasPuladas++;
         }
     }
+    printf("linhas lidas: %d\nlinhas puladas: %d\n", linhasLidas, linhasPuladas);
 
     rewind(arquivoBusca->fileArquivo);
     pularLinha(arquivoBusca);
@@ -540,9 +611,11 @@ int cmd_resumir(int argc, char **argv){
         );
     }
 
-    printf("linhas lidas: %d\n", linhasLidas);
-    printf("resultado: %s", arquivoSaida->nomeArquivo);
+    printf("resultado: %s\n", arquivoSaida->nomeArquivo);
 
+    free(unidade);
+    free(listaDeUnidades->dados);
+    free(listaDeUnidades);
     fecharArquivo(arquivoBusca);
     fecharArquivo(arquivoSaida);
 

@@ -1,108 +1,91 @@
-# consulta-TRE
+# Consulta TRE - Ferramenta de Linha de Comando
 
-Ferramenta em linha de comando para manipulação e consulta de dados do Tribunal Regional Eleitoral (TRE) a partir de arquivos `.csv`.
+## Descrição
 
-## Sobre o projeto
+Este projeto foi desenvolvido como trabalho da disciplina de Estrutura
+de Dados.\
+Consiste em uma ferramenta de linha de comando para **manipulação e
+consulta de dados dos Tribunais Regionais Eleitorais (TRE)** do Brasil,
+armazenados em arquivos CSV.
 
-O **consulta-TRE** permite realizar operações como:
+A aplicação permite realizar buscas, consolidação de arquivos e geração
+de métricas a partir dos dados.
 
-- Busca de dados por município
-- Concatenação de múltiplos arquivos CSV
-- Exportação de resultados para novos arquivos
-- Processamento em lote de diretórios
+------------------------------------------------------------------------
 
----
+## Funcionalidades
+
+-   **Busca por município**\
+    Permite consultar registros específicos a partir do nome de um
+    município.
+
+-   **Concatenação de arquivos CSV**\
+    Junta múltiplos arquivos CSV em um único arquivo consolidado.
+
+-   **Geração de resumos e métricas**\
+    Calcula indicadores de desempenho com base nos dados fornecidos.
+
+------------------------------------------------------------------------
+
 
 ## Compilação
 
-```bash
-gcc src/main.c src/consulta.c -o tre
+``` bash
+gcc src/main.c src/consulta.c -o tre.exe
 ```
 
----
+------------------------------------------------------------------------
 
-
-## Comandos disponíveis
-
-### Buscar por município
-
-```bash
-./tre -b dados.csv -m ARAPIRACA
-```
-
-**Parâmetros:**
-- `-b <arquivo>` → arquivo CSV de entrada  
-- `-m <municipio>` → nome do município para busca  
-
----
-
-### Concatenar arquivos CSV
-
-```bash
-./tre -c dados1.csv dados2.csv ...
-```
-
----
-
-### Concatenar e salvar com nome personalizado
-
-```bash
-./tre -c dados1.csv dados2.csv -o saida.csv
-```
-
-**Parâmetros adicionais:**
-- `-o <arquivo>` → define o arquivo de saída  
-
----
-
-### concatenar diretório
-
-```bash
-./tre -c -p dados
-```
-
-**Parâmetros:**
-- `-p <pasta>` → diretório contendo arquivos `.csv`  
-
----
+## Execução
 
 ### Ajuda
 
-```bash
-./tre -h
+``` bash
+./tre.exe -h
 ```
-
----
 
 ### Versão
 
-```bash
-./tre -v
+``` bash
+./tre.exe -v
 ```
 
----
+### Busca por Município
 
-## Exemplos completos
-
-```bash
-# Buscar município
-./tre -b dados.csv -m ARAPIRACA
-
-# Concatenar arquivos
-./tre -c dados1.csv dados2.csv
-
-# Concatenar e exportar
-./tre -c dados1.csv dados2.csv -o resultado.csv
-
-# Processar pasta inteira
-./tre -c -p ./dados
-
-# Ver ajuda
-./tre -h
-
-# Ver versão
-./tre -v
+``` bash
+./tre.exe -b <arquivo_entrada> -m <nome_municipio>
 ```
 
----
+**Exemplos:**
 
+``` bash
+./tre.exe -b dados.csv -m ARAPIRACA
+./tre.exe -b dados.csv -m "BELA VISTA"
+```
+
+------------------------------------------------------------------------
+
+### Concatenar Arquivos
+
+``` bash
+./tre.exe -c dados1.csv dados2.csv -o meuarquivo.csv
+```
+
+------------------------------------------------------------------------
+
+### Resumo com Métricas
+
+``` bash
+./tre.exe -r <arquivo_entrada>
+```
+
+------------------------------------------------------------------------
+
+## Observações
+
+-   Linhas podem ser ignoradas em caso de erro no CSV
+-   Problemas comuns:
+    -   Número de colunas incorreto
+    -   Dados inválidos
+
+------------------------------------------------------------------------
