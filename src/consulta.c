@@ -659,7 +659,7 @@ int cmd_resumir(int argc, char **argv){
         double meta4B  = safe_div(u.julgm4_b, (u.distm4_b - u.suspm4_b)) * 100.0;
 
         fprintf(arquivoSaida->fileArquivo,
-                "%s;%.2lf;%.2lf;%.2lf;%.2lf;%.2lf;\n",
+                "%s,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf\n",
                 u.sigla_tribunal,
                 meta1,
                 meta2A,
