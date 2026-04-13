@@ -146,7 +146,7 @@ int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
         &UnidadeStruct->julgados_2026,
         &UnidadeStruct->prim_sent2026,
         &UnidadeStruct->suspensos_2026,
-        &UnidadeStruct->dessobrestados_2026, // Faltava vírgula aqui
+        &UnidadeStruct->dessobrestados_2026,
         &UnidadeStruct->cumprimento_meta1,
         &UnidadeStruct->distm2_a,
         &UnidadeStruct->julgm2_a,
@@ -158,7 +158,7 @@ int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
         &UnidadeStruct->desom2_ant,
         &UnidadeStruct->cumprimento_meta2ant,
         &UnidadeStruct->distm4_a,
-        &UnidadeStruct->julgm4_a, // Faltava vírgula aqui
+        &UnidadeStruct->julgm4_a, 
         &UnidadeStruct->suspm4_a,
         &UnidadeStruct->cumprimento_meta4a,
         &UnidadeStruct->distm4_b,
