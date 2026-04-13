@@ -123,6 +123,19 @@ int concatenar(char* caminhoArquivo, FILE* output, int primeiro){
     return 0;
 }
 
+void removerAspas(char *str) {
+    int len = strlen(str);
+
+    if (len > 0 && str[0] == '"') {
+        memmove(str, str + 1, len); // copia "teste" para teste"
+        len--;
+    }
+
+    if (len > 0 && str[len - 1] == '"') {
+        str[len - 1] = '\0';
+    }
+}
+
 // alimenta a struct com uma linha e anda o ponterio do arquivo 1 linha 
 int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
     int teste = 0;
@@ -130,18 +143,62 @@ int alimentarStruct(FILE *arquivo, UnidadeJurisdiciona_Struct * UnidadeStruct){
     if (fgets(linha, sizeof(linha), arquivo) == NULL) {
         return 0;
     }
+    linha[strcspn(linha, "\n")] = '\0';
 
-    teste = sscanf(linha,"\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%d,\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
-        UnidadeStruct->sigla_tribunal,
-        UnidadeStruct->procedimento,
-        UnidadeStruct->ramo_justica,
-        UnidadeStruct->sigla_grau,
-        UnidadeStruct->uf_oj,
-        UnidadeStruct->municipio_oj,
-        &UnidadeStruct->id_ultimo_oj,
-        UnidadeStruct->nome,
-        UnidadeStruct->mesano_cnm1,
-        UnidadeStruct->mesano_sent,
+    char *token = strtok(linha, ",");
+
+    removerAspas(token);
+    strcpy(UnidadeStruct->sigla_tribunal, token);
+    teste++;
+
+    token = strtok(NULL, ",");
+    removerAspas(token);
+    strcpy(UnidadeStruct->procedimento, token);
+    teste++;
+
+    token = strtok(NULL, ",");
+    removerAspas(token);
+    strcpy(UnidadeStruct->ramo_justica, token);
+    teste++;
+
+    token = strtok(NULL, ",");
+    removerAspas(token);
+    strcpy(UnidadeStruct->sigla_grau, token);
+    teste++;
+
+    token = strtok(NULL, ",");
+    removerAspas(token);
+    strcpy(UnidadeStruct->uf_oj, token);
+    teste++;
+
+    token = strtok(NULL, ",");
+    removerAspas(token);
+    strcpy(UnidadeStruct->municipio_oj, token);
+    teste++;
+
+    token = strtok(NULL, ",");
+    removerAspas(token);
+    UnidadeStruct->id_ultimo_oj = atoi(token);
+    teste++;
+
+    token = strtok(NULL, ",");
+    removerAspas(token);
+    strcpy(UnidadeStruct->nome, token);
+    teste++;
+
+    token = strtok(NULL, ",");
+    removerAspas(token);
+    strcpy(UnidadeStruct->mesano_cnm1, token);
+    teste++;
+
+    token = strtok(NULL, ",");
+    removerAspas(token);
+    strcpy(UnidadeStruct->mesano_sent, token);
+    teste++;
+
+    char *resto = strtok(NULL, "");
+
+    teste += sscanf(resto,"%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
         &UnidadeStruct->casos_novos_2026,
         &UnidadeStruct->julgados_2026,
         &UnidadeStruct->prim_sent2026,
@@ -359,7 +416,8 @@ int cmd_buscar(int argc, char **argv){
         return ERRO;
     }
     if(itensEncontrados < 1){
-        printf("Nehum item encontrado");
+        printf("Nehum item encontrado\n");
+        printf("Linhas Lidas: %d\nLinhas Puladas: %d\nItens encontrados: %d\nArquivo resultante: %s\n", linhasLidas,linhasPuladas, itensEncontrados, nomeSaida);
         fclose(arquivoDeBusca);
         fclose(output);
         remove(nomeSaida);
